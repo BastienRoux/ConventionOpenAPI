@@ -1,0 +1,123 @@
+openapi: 3.1.0
+info:
+  title: artist-api
+  description: API pour la gestion d'une base de données d'artistes.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000/api
+    description: Serveur de test
+
+paths:
+  /artist:
+    get:
+      summary: Liste tous les artistes
+      description: Renvoie une liste de tous les artistes dans la base de données.
+      responses:
+        '200':
+          description: Une liste d'artistes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Artist'
+    post:
+      summary: Ajoute un nouvel artiste
+      description: Ajoute un nouvel artiste à la base de données.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Artist'
+      responses:
+        '201':
+          description: Artiste créé avec succès
+        '400':
+          description: Requête invalide
+  /artist/{id}:
+    get:
+      summary: Trouver un artiste par son ID
+      description: Renvoie un artiste spécifique identifié par son ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: L'ID de l'artiste à trouver.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails d'un artiste
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artist'
+        '404':
+          description: Artiste non trouvé
+    put:
+      summary: Met à jour un artiste
+      description: Met à jour les informations d'un artiste spécifique.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: L'ID de l'artiste à mettre à jour.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Artist'
+      responses:
+        '200':
+          description: Artiste mis à jour avec succès
+        '404':
+          description: Artiste non trouvé
+        '400':
+          description: Requête invalide
+    delete:
+      summary: Supprime un artiste
+      description: Supprime un artiste spécifique de la base de données.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: L'ID de l'artiste à supprimer.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Artiste supprimé avec succès
+        '404':
+          description: Artiste non trouvé
+components:
+  schemas:
+    Artist:
+      type: object
+      required:
+        - id
+        - nom
+      properties:
+        id:
+          type: string
+          description: L'identifiant unique de l'artiste.
+        nom:
+          type: string
+          description: Le nom de l'artiste.
+        genre:
+          type: string
+          description: Le genre musical de l'artiste.
+        pays:
+          type: string
+          description: Le pays d'origine de l'artiste.
+        dateNaissance:
+          type: string
+          format: date
+          description: La date de naissance de l'artiste.
+        biographie:
+          type: string
+          description: Une courte biographie de l'artiste.
