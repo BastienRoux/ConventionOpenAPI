@@ -1,4 +1,11 @@
-/movies:
+openapi: 3.0.0
+info:
+  title: API de Gestion de Films
+  version: 1.0.0
+
+paths:
+  # --- Début de votre code (indenté sous paths) ---
+  /movies:
     get:
       summary: List all movies
       tags: [Movies]
@@ -27,7 +34,6 @@
             application/json:
               schema:
                 $ref: '#/components/schemas/Movie'
-
 
   /movies/{id}:
     parameters:
@@ -72,3 +78,37 @@
           description: Movie deleted successfully
         '404':
           description: Movie not found
+
+# --- Section ajoutée pour définir les données ---
+components:
+  schemas:
+    Movie:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Inception"
+        releaseYear:
+          type: integer
+          example: 2010
+        director:
+          type: string
+          example: "Christopher Nolan"
+    
+    MovieInput:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          example: "Inception"
+        releaseYear:
+          type: integer
+          example: 2010
+        director:
+          type: string
+          example: "Christopher Nolan"
