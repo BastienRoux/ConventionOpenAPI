@@ -1,0 +1,292 @@
+openapi: 3.1.0
+info:
+  title: Movies Posters API
+  description: API pour la gestion d'une collection de posters de films.
+  version: 1.0.0
+
+servers:
+  - url: https://exemple-posters-movies.com/api
+    description: Serveur de production
+
+paths:
+  /posters:
+    get:
+      summary: Liste tous les posters de films
+      description: Renvoie une liste de tous les posters de films dans la collection.
+      parameters:
+        - name: movieId
+          in: query
+          required: false
+          description: Filtrer les posters par ID de film.
+          schema:
+            type: string
+            examples:
+              - "movie_789"
+      responses:
+        '200':
+          description: Une liste de posters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Poster'
+        default:
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Ajoute un nouveau poster
+      description: Ajoute un nouveau poster de film à la collection.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PosterInput'
+      responses:
+        '201':
+          description: Poster créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poster'
+        '400':
+          description: Requête invalide
+        default:
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /posters/{id}:
+    get:
+      summary: Trouver un poster par son ID
+      description: Renvoie un poster spécifique identifié par son ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: L'identifiant unique du poster.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails d'un poster
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poster'
+        '404':
+          description: Poster non trouvé
+        default:
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Met à jour un poster
+      description: Met à jour les informations d'un poster spécifique.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: L'identifiant unique du poster à mettre à jour.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PosterInput'
+      responses:
+        '200':
+          description: Poster mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Poster'
+        '404':
+          description: Poster non trouvé
+        '400':
+          description: Requête invalide
+        default:
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Supprime un poster
+      description: Supprime un poster spécifique de la collection.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: L'identifiant unique du poster à supprimer.
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Poster supprimé avec succès
+        '404':
+          description: Poster non trouvé
+        default:
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Poster:
+      type: object
+      required:
+        - id
+        - movieId
+        - imageUrl
+      properties:
+        id:
+          type: string
+          description: Identifiant unique du poster.
+          examples:
+            - "post_123456"
+        movieId:
+          type: string
+          description: L'ID du film associé dans la movie-api.
+          examples:
+            - "movie_789"
+        titreFilm:
+          type: string
+          description: Le titre du film.
+          examples:
+            - "Inception"
+        realisateur:
+          type: string
+          description: Le réalisateur du film.
+          examples:
+            - "Christopher Nolan"
+        anneeSortie:
+          type: integer
+          format: int32
+          description: L'année de sortie du film.
+          examples:
+            - 2010
+        genres:
+          type: array
+          items:
+            type: string
+          description: Les genres du film.
+          examples:
+            - ["Science-Fiction", "Thriller"]
+        imageUrl:
+          type: string
+          format: uri
+          description: L'URL de l'image du poster.
+          examples:
+            - "https://exemple.com/posters/inception.jpg"
+        synopsis:
+          type: string
+          description: Synopsis court du film.
+          examples:
+            - "Un voleur qui s'infiltre dans les rêves..."
+        acteursPrincipaux:
+          type: array
+          items:
+            type: string
+          description: Liste des acteurs principaux.
+          examples:
+            - ["Leonardo DiCaprio", "Marion Cotillard"]
+        dimensions:
+          type: object
+          properties:
+            largeur:
+              type: integer
+              description: Largeur du poster en pixels.
+              examples:
+                - 2000
+            hauteur:
+              type: integer
+              description: Hauteur du poster en pixels.
+              examples:
+                - 3000
+        dateAjout:
+          type: string
+          format: date-time
+          description: Date d'ajout du poster à la collection.
+          examples:
+            - "2025-01-27T10:30:00Z"
+
+    PosterInput:
+      type: object
+      required:
+        - movieId
+        - imageUrl
+      properties:
+        movieId:
+          type: string
+          description: L'ID du film associé dans la movie-api.
+          examples:
+            - "movie_789"
+        titreFilm:
+          type: string
+          description: Le titre du film.
+        realisateur:
+          type: string
+          description: Le réalisateur du film.
+        anneeSortie:
+          type: integer
+          format: int32
+          description: L'année de sortie du film.
+        genres:
+          type: array
+          items:
+            type: string
+          description: Les genres du film.
+        imageUrl:
+          type: string
+          format: uri
+          description: L'URL de l'image du poster.
+          examples:
+            - "https://exemple.com/posters/inception.jpg"
+        synopsis:
+          type: string
+          description: Synopsis court du film.
+        acteursPrincipaux:
+          type: array
+          items:
+            type: string
+          description: Liste des acteurs principaux.
+        dimensions:
+          type: object
+          properties:
+            largeur:
+              type: integer
+            hauteur:
+              type: integer
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Le code de l'erreur.
+          examples:
+            - "404"
+        message:
+          type: string
+          description: Le message de l'erreur.
+          examples:
+            - "Poster non trouvé"
