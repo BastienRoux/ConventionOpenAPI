@@ -1,18 +1,18 @@
 openapi: 3.1.0
 info:
   title: authentification-api
-  description: API for user authentication and authorization.
+  description: API pour l'authentification et l'autorisation des utilisateurs.
   version: 1.0.0
 
 servers:
   - url: https://api.authentification.com/v1
-    description: Production server
+    description: Serveur de production
 
 paths:
   /auth/register:
     post:
-      summary: Register a new user
-      description: Creates a new user account.
+      summary: Enregistrer un nouvel utilisateur
+      description: Crée un nouveau compte utilisateur.
       requestBody:
         required: true
         content:
@@ -21,17 +21,17 @@ paths:
               $ref: '#/components/schemas/RegisterRequest'
       responses:
         '201':
-          description: User registered successfully
+          description: Utilisateur enregistré avec succès
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
         '400':
-          description: Invalid request data
+          description: Données de requête invalides
         '409':
-          description: User already exists
+          description: L'utilisateur existe déjà
         default:
-          description: Unexpected error
+          description: Erreur inattendue
           content:
             application/json:
               schema:
@@ -39,8 +39,8 @@ paths:
 
   /auth/login:
     post:
-      summary: User login
-      description: Authenticates a user and returns an access token.
+      summary: Connexion utilisateur
+      description: Authentifie un utilisateur et renvoie un jeton d'accès (token).
       requestBody:
         required: true
         content:
@@ -49,17 +49,17 @@ paths:
               $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Login successful
+          description: Connexion réussie
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
         '401':
-          description: Invalid credentials
+          description: Identifiants invalides
         '400':
-          description: Invalid request data
+          description: Données de requête invalides
         default:
-          description: Unexpected error
+          description: Erreur inattendue
           content:
             application/json:
               schema:
@@ -67,17 +67,17 @@ paths:
 
   /auth/logout:
     post:
-      summary: User logout
-      description: Invalidates the current user session.
+      summary: Déconnexion utilisateur
+      description: Invalide la session de l'utilisateur actuel.
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: Logout successful
+          description: Déconnexion réussie
         '401':
-          description: Unauthorized
+          description: Non autorisé
         default:
-          description: Unexpected error
+          description: Erreur inattendue
           content:
             application/json:
               schema:
@@ -85,21 +85,21 @@ paths:
 
   /auth/me:
     get:
-      summary: Get current user
-      description: Returns the authenticated user's information.
+      summary: Obtenir l'utilisateur actuel
+      description: Renvoie les informations de l'utilisateur authentifié.
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: User details
+          description: Détails de l'utilisateur
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
         '401':
-          description: Unauthorized
+          description: Non autorisé
         default:
-          description: Unexpected error
+          description: Erreur inattendue
           content:
             application/json:
               schema:
@@ -107,44 +107,44 @@ paths:
 
   /users/{id}:
     get:
-      summary: Find a user by ID
-      description: Returns a single user identified by its ID.
+      summary: Trouver un utilisateur par ID
+      description: Renvoie un seul utilisateur identifié par son ID.
       security:
         - bearerAuth: []
       parameters:
         - name: id
           in: path
           required: true
-          description: The unique ID of the user.
+          description: L'identifiant unique de l'utilisateur.
           schema:
             type: integer
       responses:
         '200':
-          description: User details
+          description: Détails de l'utilisateur
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
         '404':
-          description: User not found
+          description: Utilisateur non trouvé
         '401':
-          description: Unauthorized
+          description: Non autorisé
         default:
-          description: Unexpected error
+          description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
     put:
-      summary: Update a user
-      description: Updates the information of an existing user.
+      summary: Mettre à jour un utilisateur
+      description: Met à jour les informations d'un utilisateur existant.
       security:
         - bearerAuth: []
       parameters:
         - name: id
           in: path
           required: true
-          description: The unique ID of the user to update.
+          description: L'identifiant unique de l'utilisateur à mettre à jour.
           schema:
             type: integer
       requestBody:
@@ -155,44 +155,44 @@ paths:
               $ref: '#/components/schemas/UpdateUserRequest'
       responses:
         '200':
-          description: User updated successfully
+          description: Utilisateur mis à jour avec succès
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
         '404':
-          description: User not found
+          description: Utilisateur non trouvé
         '401':
-          description: Unauthorized
+          description: Non autorisé
         '400':
-          description: Invalid request data
+          description: Données de requête invalides
         default:
-          description: Unexpected error
+          description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
     delete:
-      summary: Delete a user
-      description: Deletes a specific user account.
+      summary: Supprimer un utilisateur
+      description: Supprime un compte utilisateur spécifique.
       security:
         - bearerAuth: []
       parameters:
         - name: id
           in: path
           required: true
-          description: The unique ID of the user to delete.
+          description: L'identifiant unique de l'utilisateur à supprimer.
           schema:
             type: integer
       responses:
         '204':
-          description: User deleted successfully (No content)
+          description: Utilisateur supprimé avec succès (aucun contenu)
         '404':
-          description: User not found
+          description: Utilisateur non trouvé
         '401':
-          description: Unauthorized
+          description: Non autorisé
         default:
-          description: Unexpected error
+          description: Erreur inattendue
           content:
             application/json:
               schema:
@@ -216,18 +216,18 @@ components:
         email:
           type: string
           format: email
-          description: User's email address.
+          description: Adresse e-mail de l'utilisateur.
           examples:
             - "user@example.com"
         password:
           type: string
           format: password
-          description: User's password.
+          description: Mot de passe de l'utilisateur.
           examples:
-            - "password"
+            - "motdepasse"
         username:
           type: string
-          description: User's username.
+          description: Nom d'utilisateur.
           examples:
             - "levy marques"
 
@@ -240,15 +240,15 @@ components:
         email:
           type: string
           format: email
-          description: User's email address.
+          description: Adresse e-mail de l'utilisateur.
           examples:
             - "user@example.com"
         password:
           type: string
           format: password
-          description: User's password.
+          description: Mot de passe de l'utilisateur.
           examples:
-            - "password"
+            - "motdepasse"
 
     RefreshTokenRequest:
       type: object
@@ -257,31 +257,25 @@ components:
       properties:
         refreshToken:
           type: string
-          description: The refresh token.
-          examples:
-            - "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          description: Le jeton de rafraîchissement (refresh token).
 
     AuthResponse:
       type: object
       properties:
         accessToken:
           type: string
-          description: JWT access token.
-          examples:
-            - "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          description: Jeton d'accès JWT.
         refreshToken:
           type: string
-          description: JWT refresh token.
-          examples:
-            - "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          description: Jeton de rafraîchissement JWT.
         expiresIn:
           type: integer
-          description: Token expiration time in seconds.
+          description: Temps d'expiration du jeton en secondes.
           examples:
             - 3600
         tokenType:
           type: string
-          description: Type of the token.
+          description: Type du jeton.
           examples:
             - "Bearer"
 
@@ -290,27 +284,27 @@ components:
       properties:
         id:
           type: integer
-          description: Unique identifier for the user.
+          description: Identifiant unique de l'utilisateur.
           readOnly: true
           examples:
             - 1
         email:
           type: string
           format: email
-          description: User's email address.
+          description: Adresse e-mail de l'utilisateur.
           examples:
             - "user@example.com"
         username:
           type: string
-          description: User's username.
+          description: Nom d'utilisateur.
           examples:
             - "levy marques"
         createdAt:
           type: string
           format: date-time
-          description: Account creation date.
+          description: Date de création du compte.
           examples:
-            - "2026-01-27"
+            - "2026-01-27T10:00:00Z"
 
     UpdateUserRequest:
       type: object
@@ -318,20 +312,14 @@ components:
         email:
           type: string
           format: email
-          description: User's email address.
-          examples:
-            - "newemail@example.com"
+          description: Nouvelle adresse e-mail de l'utilisateur.
         username:
           type: string
-          description: User's username.
-          examples:
-            - "newusername"
+          description: Nouveau nom d'utilisateur.
         password:
           type: string
           format: password
-          description: New password.
-          examples:
-            - "password"
+          description: Nouveau mot de passe.
 
     Error:
       type: object
