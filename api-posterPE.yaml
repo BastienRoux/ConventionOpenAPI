@@ -1,21 +1,21 @@
 openapi: 3.1.0
 info:
   title: poster-api
-  description: API for managing posters.
+  description: API pour la gestion d'affiches (posters).
   version: 1.0.0
 
 servers:
   - url: https://api.posters.com/v1
-    description: Production server
+    description: Serveur de production
 
 paths:
   /posters:
     get:
-      summary: List all posters
-      description: Returns a list of all posters.
+      summary: Lister toutes les affiches
+      description: Renvoie une liste de toutes les affiches.
       responses:
         '200':
-          description: A list of posters
+          description: Une liste d'affiches
           content:
             application/json:
               schema:
@@ -23,14 +23,14 @@ paths:
                 items:
                   $ref: '#/components/schemas/Poster'
         default:
-          description: Unexpected error
+          description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
     post:
-      summary: Add a new poster
-      description: Adds a new poster to the list.
+      summary: Ajouter une nouvelle affiche
+      description: Ajoute une nouvelle affiche à la liste.
       requestBody:
         required: true
         content:
@@ -39,15 +39,15 @@ paths:
               $ref: '#/components/schemas/Poster'
       responses:
         '201':
-          description: Poster created successfully
+          description: Affiche créée avec succès
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Poster'
         '400':
-          description: Invalid request data
+          description: Données de requête invalides
         default:
-          description: Unexpected error
+          description: Erreur inattendue
           content:
             application/json:
               schema:
@@ -55,38 +55,38 @@ paths:
 
   /posters/{id}:
     get:
-      summary: Find a poster by ID
-      description: Returns a single poster identified by its ID.
+      summary: Trouver une affiche par ID
+      description: Renvoie une seule affiche identifiée par son ID.
       parameters:
         - name: id
           in: path
           required: true
-          description: The unique ID of the poster.
+          description: L'identifiant unique de l'affiche.
           schema:
             type: integer
       responses:
         '200':
-          description: Poster details
+          description: Détails de l'affiche
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Poster'
         '404':
-          description: Poster not found
+          description: Affiche non trouvée
         default:
-          description: Unexpected error
+          description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
     put:
-      summary: Update a poster
-      description: Updates the information of an existing poster.
+      summary: Mettre à jour une affiche
+      description: Met à jour les informations d'une affiche existante.
       parameters:
         - name: id
           in: path
           required: true
-          description: The unique ID of the poster to update.
+          description: L'identifiant unique de l'affiche à mettre à jour.
           schema:
             type: integer
       requestBody:
@@ -97,38 +97,38 @@ paths:
               $ref: '#/components/schemas/Poster'
       responses:
         '200':
-          description: Poster updated successfully
+          description: Affiche mise à jour avec succès
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Poster'
         '404':
-          description: Poster not found
+          description: Affiche non trouvée
         '400':
-          description: Invalid request data
+          description: Données de requête invalides
         default:
-          description: Unexpected error
+          description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
     delete:
-      summary: Delete a poster
-      description: Deletes a specific poster from the list.
+      summary: Supprimer une affiche
+      description: Supprime une affiche spécifique de la liste.
       parameters:
         - name: id
           in: path
           required: true
-          description: The unique ID of the poster to delete.
+          description: L'identifiant unique de l'affiche à supprimer.
           schema:
             type: integer
       responses:
         '204':
-          description: Poster deleted successfully (No content)
+          description: Affiche supprimée avec succès (aucun contenu)
         '404':
-          description: Poster not found
+          description: Affiche non trouvée
         default:
-          description: Unexpected error
+          description: Erreur inattendue
           content:
             application/json:
               schema:
@@ -143,18 +143,18 @@ components:
       properties:
         id:
           type: integer
-          description: Unique identifier for the poster.
+          description: Identifiant unique de l'affiche.
           readOnly: true
         imageUrl:
           type: string
-          description: The URL of the poster image.
+          description: L'URL de l'image de l'affiche.
           examples:
             - "https://images.posters.com/posters/poster1.jpg"
         title:
           type: string
-          description: The title or description of the poster.
+          description: Le titre ou la description de l'affiche.
           examples:
-            - "Poster"
+            - "Affiche"
     Error:
       type: object
       properties:
