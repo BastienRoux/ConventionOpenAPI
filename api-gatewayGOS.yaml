@@ -1,0 +1,64 @@
+openapi: 3.1.0
+info:
+  title: Gateway API
+  description: Point d'entrée unique de l'application, redirige vers les différentes APIs.
+  version: 1.0.0
+
+servers:
+  - url: https://exemple-gateway.com/api
+    description: Serveur de production
+
+paths:
+  /movies:
+    get:
+      summary: Liste tous les films
+      description: Redirige vers la movie-api pour récupérer tous les films.
+      responses:
+        '200':
+          description: Une liste de films
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Movie'
+        default:
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Ajoute un nouveau film
+      description: Redirige vers la movie-api pour créer un film.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieInput'
+      responses:
+        '201':
+          description: Film créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movie'
+        '400':
+          description: Requête invalide
+        default:
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /movies/{id}:
+    get:
+      summary: Trouver un film par son ID
+      description: Redirige vers la movie-api pour récupérer un film spécifique.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description
