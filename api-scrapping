@@ -1,0 +1,1198 @@
+openapi: 3.1.0
+info:
+  title: scraping-api
+  description: API pour l'import automatique de données de films, artistes, avis et affiches depuis des sources externes (TMDb, IMDb, OMDb, etc.) vers le système VOD. Cette API permet de peupler la base de données en interrogeant des APIs externes.
+  version: 1.0.0
+
+servers:
+  - url: 
+    description: Serveur de production
+
+paths:
+  /scraping/movies/search:
+    get:
+      summary: Rechercher des films sur les sources externes
+      description: Recherche des films sur les API externes (TMDb, OMDb, etc.) sans les importer dans la base de données. Permet de prévisualiser avant import.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Terme de recherche (titre du film)
+          schema:
+            type: string
+            example: "Inception"
+        - name: year
+          in: query
+          required: false
+          description: Année de réalisation (optionnel pour affiner la recherche)
+          schema:
+            type: integer
+            example: 2010
+        - name: source
+          in: query
+          required: false
+          description: Source à utiliser (tmdb, omdb, imdb). Par défaut, utilise TMDb.
+          schema:
+            type: string
+            default: tmdb
+            enum: [tmdb, omdb, imdb]
+        - name: limit
+          in: query
+          required: false
+          description: Nombre maximum de résultats
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+      responses:
+        '200':
+          description: Résultats de la recherche
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExternalMovie'
+                  source:
+                    type: string
+                    description: Source utilisée pour la recherche
+                  total:
+                    type: integer
+                    description: Nombre total de résultats trouvés
+        '400':
+          description: Requête invalide (query manquant)
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+        '503':
+          description: Service externe indisponible
+
+  /scraping/movies/import:
+    post:
+      summary: Importer un film depuis une source externe
+      description: Importe un film complet avec toutes ses informations (réalisateur, acteurs, genres, âge minimum) et son affiche dans la base de données VOD. Crée automatiquement les artistes manquants.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieImportRequest'
+      responses:
+        '201':
+          description: Film importé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+        '400':
+          description: Requête invalide ou données insuffisantes
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+        '409':
+          description: Le film existe déjà dans la base de données (titre unique)
+        '503':
+          description: Service externe indisponible
+
+  /scraping/movies/bulk-import:
+    post:
+      summary: Importer plusieurs films en masse
+      description: Importe une liste de films depuis une source externe (ex. top 100 films populaires, films d'un certain genre). Crée une tâche asynchrone pour l'import.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkImportRequest'
+      responses:
+        '202':
+          description: Import en cours - tâche créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScrapingTask'
+        '400':
+          description: Requête invalide
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+
+  /scraping/movies/{externalId}/details:
+    get:
+      summary: Récupérer les détails d'un film depuis une source externe
+      description: Récupère toutes les informations disponibles pour un film spécifique (cast complet, genres, synopsis, etc.)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: externalId
+          in: path
+          required: true
+          description: ID du film dans la source externe (ex. tmdb_id, imdb_id)
+          schema:
+            type: string
+            example: "tt1375666"
+        - name: source
+          in: query
+          required: false
+          description: Source à utiliser
+          schema:
+            type: string
+            default: tmdb
+            enum: [tmdb, omdb, imdb]
+      responses:
+        '200':
+          description: Détails complets du film
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalMovieDetail'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+        '404':
+          description: Film non trouvé sur la source externe
+        '503':
+          description: Service externe indisponible
+
+  /scraping/artists/search:
+    get:
+      summary: Rechercher des artistes sur les sources externes
+      description: Recherche des acteurs/réalisateurs sur les API externes.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Nom de l'artiste
+          schema:
+            type: string
+            example: "Leonardo DiCaprio"
+        - name: source
+          in: query
+          required: false
+          description: Source à utiliser
+          schema:
+            type: string
+            default: tmdb
+            enum: [tmdb, imdb]
+        - name: limit
+          in: query
+          required: false
+          description: Nombre maximum de résultats
+          schema:
+            type: integer
+            default: 10
+            maximum: 50
+      responses:
+        '200':
+          description: Résultats de la recherche
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExternalArtist'
+                  source:
+                    type: string
+                  total:
+                    type: integer
+        '400':
+          description: Requête invalide
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+        '503':
+          description: Service externe indisponible
+
+  /scraping/artists/import:
+    post:
+      summary: Importer un artiste depuis une source externe
+      description: Importe un acteur ou réalisateur dans la base de données SQL.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArtistImportRequest'
+      responses:
+        '201':
+          description: Artiste importé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+        '400':
+          description: Requête invalide
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+        '409':
+          description: L'artiste existe déjà
+        '503':
+          description: Service externe indisponible
+
+  /scraping/reviews/fetch:
+    post:
+      summary: Récupérer les avis d'un film depuis une source externe
+      description: Importe les avis/critiques d'un film depuis une API externe vers MongoDB. Les avis sont stockés sans pseudo utilisateur (avis externes).
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewsFetchRequest'
+      responses:
+        '202':
+          description: Récupération des avis en cours
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScrapingTask'
+        '400':
+          description: Requête invalide
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+        '404':
+          description: Film non trouvé dans la base VOD
+        '503':
+          description: Service externe indisponible
+
+  /scraping/posters/fetch:
+    post:
+      summary: Récupérer l'affiche d'un film
+      description: Télécharge et stocke l'affiche d'un film dans MongoDB. L'affiche est convertie au format approprié.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PosterFetchRequest'
+      responses:
+        '201':
+          description: Affiche récupérée et stockée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+        '400':
+          description: Requête invalide
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+        '404':
+          description: Film non trouvé ou affiche non disponible
+        '503':
+          description: Service externe indisponible
+
+  /scraping/tasks:
+    get:
+      summary: Liste toutes les tâches d'import/scraping
+      description: Renvoie l'historique de toutes les tâches d'import (admin uniquement).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Filtrer par statut
+          schema:
+            type: string
+            enum: [pending, running, completed, failed, cancelled]
+        - name: type
+          in: query
+          required: false
+          description: Filtrer par type d'import
+          schema:
+            type: string
+            enum: [movie, artist, poster, review, bulk]
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Liste des tâches
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ScrapingTask'
+                  total:
+                    type: integer
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+
+  /scraping/tasks/{taskId}:
+    get:
+      summary: Récupérer les détails d'une tâche
+      description: Renvoie les informations détaillées d'une tâche d'import (progression, erreurs, logs).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: L'ID de la tâche
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails de la tâche
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScrapingTaskDetail'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit
+        '404':
+          description: Tâche non trouvée
+    
+    delete:
+      summary: Annuler ou supprimer une tâche
+      description: Annule une tâche en cours ou supprime une tâche terminée.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: L'ID de la tâche à supprimer
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tâche supprimée avec succès
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+        '404':
+          description: Tâche non trouvée
+
+  /scraping/sources:
+    get:
+      summary: Liste les sources externes configurées
+      description: Renvoie la liste des sources externes disponibles (TMDb, OMDb, IMDb) avec leur configuration.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Liste des sources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ScrapingSource'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+    
+    post:
+      summary: Ajouter une nouvelle source
+      description: Configure une nouvelle source de données externe (nécessite une clé API).
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScrapingSourceCreate'
+      responses:
+        '201':
+          description: Source ajoutée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScrapingSource'
+        '400':
+          description: Requête invalide
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+        '409':
+          description: La source existe déjà
+
+  /scraping/sources/{sourceId}:
+    get:
+      summary: Récupérer une source par son ID
+      description: Renvoie les informations d'une source spécifique.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sourceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Informations de la source
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScrapingSource'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit
+        '404':
+          description: Source non trouvée
+    
+    put:
+      summary: Mettre à jour une source
+      description: Met à jour la configuration d'une source (clé API, rate limits, etc.)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sourceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScrapingSourceUpdate'
+      responses:
+        '200':
+          description: Source mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScrapingSource'
+        '400':
+          description: Requête invalide
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+        '404':
+          description: Source non trouvée
+    
+    delete:
+      summary: Supprimer une source
+      description: Supprime une source de la configuration.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sourceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Source supprimée
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+        '404':
+          description: Source non trouvée
+
+  /scraping/sources/{sourceId}/test:
+    post:
+      summary: Tester une source
+      description: Teste la connexion et l'accès à une source externe (vérification de la clé API, disponibilité).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sourceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Source accessible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok, error]
+                  message:
+                    type: string
+                  responseTime:
+                    type: integer
+                    description: Temps de réponse en ms
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit
+        '404':
+          description: Source non trouvée
+        '503':
+          description: Source inaccessible
+
+  /scraping/stats:
+    get:
+      summary: Statistiques d'import
+      description: Renvoie les statistiques globales sur les activités d'import.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          description: Date de début (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          required: false
+          description: Date de fin (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Statistiques d'import
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScrapingStats'
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+
+  /scraping/mapping/genres:
+    get:
+      summary: Liste les mappings de genres
+      description: Renvoie le mapping entre les genres des sources externes et les genres du système VOD.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Mappings de genres
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
+                example:
+                  Action: ["Action", "Adventure"]
+                  Drame: ["Drama"]
+                  Comédie: ["Comedy"]
+        '401':
+          description: Non authentifié
+        '403':
+          description: Accès interdit (admin uniquement)
+
+components:
+  schemas:
+    ExternalMovie:
+      type: object
+      description: Film provenant d'une source externe (résultat de recherche).
+      properties:
+        externalId:
+          type: string
+          description: ID du film dans la source externe (ex. tmdb_id)
+          example: "27205"
+        source:
+          type: string
+          description: Source des données
+          enum: [tmdb, omdb, imdb]
+        title:
+          type: string
+          description: Titre du film
+          example: "Inception"
+        originalTitle:
+          type: string
+          description: Titre original
+          example: "Inception"
+        year:
+          type: integer
+          description: Année de réalisation
+          example: 2010
+        posterUrl:
+          type: string
+          format: uri
+          description: URL de l'affiche
+        overview:
+          type: string
+          description: Synopsis du film
+        rating:
+          type: number
+          format: float
+          description: Note moyenne (sur l'échelle de la source)
+        voteCount:
+          type: integer
+          description: Nombre de votes
+        director:
+          type: string
+          description: Nom du réalisateur (si disponible)
+        genres:
+          type: array
+          items:
+            type: string
+          description: Liste des genres
+
+    ExternalMovieDetail:
+      type: object
+      description: Détails complets d'un film depuis une source externe.
+      properties:
+        externalId:
+          type: string
+          example: "tt1375666"
+        source:
+          type: string
+          enum: [tmdb, omdb, imdb]
+        title:
+          type: string
+          example: "Inception"
+        originalTitle:
+          type: string
+        year:
+          type: integer
+          example: 2010
+        runtime:
+          type: integer
+          description: Durée en minutes
+          example: 148
+        posterUrl:
+          type: string
+          format: uri
+        backdropUrl:
+          type: string
+          format: uri
+          description: URL de l'image de fond
+        overview:
+          type: string
+          description: Synopsis complet
+        tagline:
+          type: string
+          description: Accroche du film
+        rating:
+          type: number
+          format: float
+        voteCount:
+          type: integer
+        certification:
+          type: string
+          description: Classification (PG-13, R, etc.)
+          example: "PG-13"
+        ageRating:
+          type: integer
+          description: Âge minimum recommandé (converti depuis certification)
+          example: 13
+        releaseDate:
+          type: string
+          format: date
+        director:
+          type: object
+          properties:
+            externalId:
+              type: string
+            name:
+              type: string
+              example: "Christopher Nolan"
+        cast:
+          type: array
+          items:
+            type: object
+            properties:
+              externalId:
+                type: string
+              name:
+                type: string
+              character:
+                type: string
+              order:
+                type: integer
+          description: Liste des acteurs principaux
+        genres:
+          type: array
+          items:
+            type: string
+        productionCountries:
+          type: array
+          items:
+            type: string
+        languages:
+          type: array
+          items:
+            type: string
+
+    ExternalArtist:
+      type: object
+      description: Artiste (acteur/réalisateur) provenant d'une source externe.
+      properties:
+        externalId:
+          type: string
+          description: ID de l'artiste dans la source externe
+          example: "6193"
+        source:
+          type: string
+          enum: [tmdb, imdb]
+        name:
+          type: string
+          example: "Leonardo DiCaprio"
+        profileUrl:
+          type: string
+          format: uri
+          description: URL de la photo de profil
+        biography:
+          type: string
+          description: Biographie courte
+        birthday:
+          type: string
+          format: date
+          description: Date de naissance
+        knownFor:
+          type: string
+          description: Métier principal (Acting, Directing)
+          example: "Acting"
+        popularity:
+          type: number
+          format: float
+          description: Score de popularité
+
+    MovieImportRequest:
+      type: object
+      required:
+        - externalId
+        - source
+      properties:
+        externalId:
+          type: string
+          description: ID du film dans la source externe
+          example: "27205"
+        source:
+          type: string
+          description: Source à utiliser
+          enum: [tmdb, omdb, imdb]
+        importCast:
+          type: boolean
+          default: true
+          description: Importer les acteurs (créer les artistes manquants)
+        importDirector:
+          type: boolean
+          default: true
+          description: Importer le réalisateur
+        importPoster:
+          type: boolean
+          default: true
+          description: Télécharger et stocker l'affiche
+        defaultPrice:
+          type: number
+          format: float
+          description: Prix de location par défaut (film créé fermé à la location)
+          example: 3.99
+        mappingOptions:
+          type: object
+          properties:
+            genreMapping:
+              type: object
+              additionalProperties:
+                type: string
+              description: Mapping personnalisé des genres
+            ageRatingMapping:
+              type: object
+              description: Mapping personnalisé des classifications d'âge
+
+    ArtistImportRequest:
+      type: object
+      required:
+        - externalId
+        - source
+      properties:
+        externalId:
+          type: string
+          description: ID de l'artiste dans la source externe
+        source:
+          type: string
+          enum: [tmdb, imdb]
+
+    BulkImportRequest:
+      type: object
+      required:
+        - source
+        - category
+      properties:
+        source:
+          type: string
+          enum: [tmdb, omdb]
+        category:
+          type: string
+          enum: [popular, top_rated, now_playing, upcoming, by_genre]
+          description: Catégorie de films à importer
+        genre:
+          type: string
+          description: Genre spécifique (requis si category=by_genre)
+        limit:
+          type: integer
+          default: 20
+          maximum: 100
+          description: Nombre de films à importer
+        importCast:
+          type: boolean
+          default: true
+        importDirector:
+          type: boolean
+          default: true
+        importPosters:
+          type: boolean
+          default: true
+        defaultPrice:
+          type: number
+          format: float
+          default: 3.99
+
+    ReviewsFetchRequest:
+      type: object
+      required:
+        - movieTitle
+      properties:
+        movieTitle:
+          type: string
+          description: Titre du film dans la base VOD (titre unique)
+          example: "Inception"
+        source:
+          type: string
+          default: tmdb
+          enum: [tmdb, imdb]
+        limit:
+          type: integer
+          default: 10
+          maximum: 50
+          description: Nombre maximum d'avis à importer
+
+    PosterFetchRequest:
+      type: object
+      required:
+        - movieTitle
+      properties:
+        movieTitle:
+          type: string
+          description: Titre du film dans la base VOD
+          example: "Inception"
+        source:
+          type: string
+          default: tmdb
+          enum: [tmdb, omdb]
+        quality:
+          type: string
+          enum: [low, medium, high, original]
+          default: high
+          description: Qualité de l'image à télécharger
+
+    ImportResult:
+      type: object
+      description: Résultat d'un import (film, artiste, affiche).
+      properties:
+        success:
+          type: boolean
+        entityId:
+          type: string
+          description: ID de l'entité créée/mise à jour dans la base VOD
+        entityType:
+          type: string
+          enum: [movie, artist, poster]
+        message:
+          type: string
+          description: Message de confirmation ou d'erreur
+        details:
+          type: object
+          properties:
+            created:
+              type: array
+              items:
+                type: string
+              description: Entités créées (ex. artistes manquants)
+            updated:
+              type: array
+              items:
+                type: string
+              description: Entités mises à jour
+            errors:
+              type: array
+              items:
+                type: string
+              description: Erreurs rencontrées
+
+    ScrapingTask:
+      type: object
+      description: Tâche d'import asynchrone.
+      properties:
+        id:
+          type: string
+          description: ID unique de la tâche
+        type:
+          type: string
+          enum: [movie, artist, poster, review, bulk]
+        source:
+          type: string
+          description: Source externe utilisée
+        status:
+          type: string
+          enum: [pending, running, completed, failed, cancelled]
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Pourcentage de progression
+        itemsProcessed:
+          type: integer
+          description: Nombre d'éléments traités
+        itemsTotal:
+          type: integer
+          description: Nombre total d'éléments
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+          description: Pseudo de l'admin ayant lancé la tâche
+
+    ScrapingTaskDetail:
+      allOf:
+        - $ref: '#/components/schemas/ScrapingTask'
+        - type: object
+          properties:
+            parameters:
+              type: object
+              description: Paramètres de la tâche
+            errors:
+              type: array
+              items:
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                  message:
+                    type: string
+                  entityId:
+                    type: string
+                  details:
+                    type: string
+            logs:
+              type: array
+              items:
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    format: date-time
+                  level:
+                    type: string
+                    enum: [info, warning, error]
+                  message:
+                    type: string
+            results:
+              type: object
+              properties:
+                moviesImported:
+                  type: integer
+                artistsCreated:
+                  type: integer
+                postersDownloaded:
+                  type: integer
+                reviewsImported:
+                  type: integer
+                duplicatesSkipped:
+                  type: integer
+
+    ScrapingSourceCreate:
+      type: object
+      required:
+        - name
+        - type
+        - baseUrl
+      properties:
+        name:
+          type: string
+          description: Nom de la source
+          example: "TMDb"
+        description:
+          type: string
+        type:
+          type: string
+          enum: [tmdb, omdb, imdb, custom]
+        baseUrl:
+          type: string
+          format: uri
+          example: "https://api.themoviedb.org/3"
+        apiKey:
+          type: string
+          description: Clé API (si nécessaire)
+        apiKeyHeader:
+          type: string
+          default: "Authorization"
+          description: Nom du header pour la clé API
+        rateLimit:
+          type: object
+          properties:
+            requestsPerSecond:
+              type: integer
+              example: 10
+            requestsPerDay:
+              type: integer
+              example: 10000
+        active:
+          type: boolean
+          default: true
+
+    ScrapingSource:
+      allOf:
+        - $ref: '#/components/schemas/ScrapingSourceCreate'
+        - type: object
+          properties:
+            id:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+            lastUsed:
+              type: string
+              format: date-time
+            totalRequests:
+              type: integer
+              description: Nombre total de requêtes effectuées
+            successRate:
+              type: number
+              format: float
+              description: Taux de succès (%)
+            averageResponseTime:
+              type: number
+              format: float
+              description: Temps de réponse moyen en ms
+
+    ScrapingSourceUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        baseUrl:
+          type: string
+          format: uri
+        apiKey:
+          type: string
+        apiKeyHeader:
+          type: string
+        rateLimit:
+          type: object
+          properties:
+            requestsPerSecond:
+              type: integer
+            requestsPerDay:
+              type: integer
+        active:
+          type: boolean
+
+    ScrapingStats:
+      type: object
+      properties:
+        totalTasks:
+          type: integer
+        completedTasks:
+          type: integer
+        failedTasks:
+          type: integer
+        runningTasks:
+          type: integer
+        totalMoviesImported:
+          type: integer
+        totalArtistsCreated:
+          type: integer
+        totalPostersDownloaded:
+          type: integer
+        totalReviewsImported:
+          type: integer
+        averageTaskDuration:
+          type: number
+          format: float
+          description: Durée moyenne en secondes
+        bySource:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Nombre d'imports par source
+        recentErrors:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              taskId:
+                type: string
+              message:
+                type: string
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT obtenu via l'API d'authentification. Toutes les routes nécessitent un rôle admin.
