@@ -11,9 +11,6 @@ paths:
   '/scraping/movies/{name}':
     get:
       summary: Rechercher et importer un film depuis une API externe
-      description: >
-        Interroge une API externe pour récupérer les informations d'un film
-        par son titre et les insère dans la base de données locale.
       parameters:
         - name: name
           in: path
@@ -39,9 +36,6 @@ paths:
   '/scraping/artists/{name}':
     get:
       summary: Rechercher et importer un artiste depuis une API externe
-      description: >
-        Interroge une API externe pour récupérer les informations d'un artiste
-        par son nom et les insère dans la base de données locale.
       parameters:
         - name: name
           in: path
@@ -64,18 +58,17 @@ paths:
         '502':
           description: Erreur lors de la communication avec l'API externe
 
-  '/scraping/movies/batch':
-    post:
-      summary: Importer une liste de films en masse
-      description: >
-        Interroge une API externe pour récupérer et insérer plusieurs films d'un coup.
-        Utile pour le peuplement initial de la base de données.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BatchMovieRequest'
+  '/scraping/movies/batch/{nbFilms}':
+    get:
+      summary: Importer un nombre aléatoire de films
+      parameters:
+        - name: nbFilms
+          in: path
+          required: true
+          description: Nombre de films à générer aléatoirement
+          schema:
+            type: integer
+            example: 20
       responses:
         '201':
           description: Films importés avec succès
@@ -83,8 +76,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BatchMovieResponse'
-        '400':
-          description: Requête invalide
         '502':
           description: Erreur lors de la communication avec l'API externe
 
@@ -118,7 +109,6 @@ components:
           example: ["Science-Fiction", "Thriller"]
         minAge:
           type: integer
-          description: Âge minimum requis pour regarder le film
           example: 12
         rating:
           type: number
@@ -141,29 +131,15 @@ components:
           type: string
           example: "Acteur américain né à Los Angeles..."
 
-    BatchMovieRequest:
-      type: object
-      required:
-        - titles
-      properties:
-        titles:
-          type: array
-          description: Liste des titres de films à importer
-          items:
-            type: string
-          example: ["Inception", "Interstellar", "The Dark Knight"]
-
     BatchMovieResponse:
       type: object
       properties:
         imported:
           type: integer
-          description: Nombre de films importés avec succès
-          example: 3
+          example: 20
         skipped:
           type: integer
-          description: Nombre de films ignorés (déjà en base ou non trouvés)
-          example: 1
+          example: 3
         movies:
           type: array
           items:
