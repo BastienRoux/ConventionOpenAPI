@@ -54,11 +54,11 @@ paths:
           description: L'artiste existe déjà en base de données
         '502':
           description: Erreur lors de la communication avec l'API externe
-  '/movies/batch/{nbFilms}':
+  '/movies/batch/{nbMovies}':
     get:
       summary: Importer un nombre aléatoire de films
       parameters:
-        - name: nbFilms
+        - name: nbMovies
           in: path
           required: true
           description: Nombre de films à générer aléatoirement
