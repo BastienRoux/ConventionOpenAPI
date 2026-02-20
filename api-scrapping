@@ -1,58 +1,96 @@
 openapi: 3.1.0
 info:
-  title: Simple Movie & Artist API
-  description: API simplifiée pour récupérer des informations sur des films et des artistes.
+  title: scrapping-api
+  description: >
+    API de scrapping permettant de récupérer des données sur des films et des artistes
+    depuis des bases extérieures afin de peupler la base de données locale.
   version: 1.0.0
 
-servers:
-  - url: http://localhost:8080
-    description: Serveur de développement
-
 paths:
-  '/movies/{name}':
+
+  '/scraping/movies/{name}':
     get:
-      summary: Récupérer les infos d'un film
+      summary: Rechercher et importer un film depuis une API externe
+      description: >
+        Interroge une API externe pour récupérer les informations d'un film
+        par son titre et les insère dans la base de données locale.
       parameters:
         - name: name
           in: path
           required: true
-          description: Le titre du film
+          description: Le titre du film à rechercher
           schema:
             type: string
             example: "Inception"
       responses:
-        '200':
-          description: Film trouvé
+        '201':
+          description: Film importé et enregistré avec succès
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Movie'
         '404':
-          description: Film non trouvé
+          description: Film non trouvé sur l'API externe
+        '409':
+          description: Le film existe déjà en base de données
+        '502':
+          description: Erreur lors de la communication avec l'API externe
 
-  '/artists/{name}':
+  '/scraping/artists/{name}':
     get:
-      summary: Récupérer les infos d'un artiste
+      summary: Rechercher et importer un artiste depuis une API externe
+      description: >
+        Interroge une API externe pour récupérer les informations d'un artiste
+        par son nom et les insère dans la base de données locale.
       parameters:
         - name: name
           in: path
           required: true
-          description: Le nom de l'artiste
+          description: Le nom de l'artiste à rechercher
           schema:
             type: string
             example: "Leonardo DiCaprio"
       responses:
-        '200':
-          description: Artiste trouvé
+        '201':
+          description: Artiste importé et enregistré avec succès
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Artist'
         '404':
-          description: Artiste non trouvé
+          description: Artiste non trouvé sur l'API externe
+        '409':
+          description: L'artiste existe déjà en base de données
+        '502':
+          description: Erreur lors de la communication avec l'API externe
+
+  '/scraping/movies/batch':
+    post:
+      summary: Importer une liste de films en masse
+      description: >
+        Interroge une API externe pour récupérer et insérer plusieurs films d'un coup.
+        Utile pour le peuplement initial de la base de données.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchMovieRequest'
+      responses:
+        '201':
+          description: Films importés avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchMovieResponse'
+        '400':
+          description: Requête invalide
+        '502':
+          description: Erreur lors de la communication avec l'API externe
 
 components:
   schemas:
+
     Movie:
       type: object
       properties:
@@ -64,8 +102,24 @@ components:
           example: 2010
         description:
           type: string
+          example: "Un voleur qui s'infiltre dans les rêves..."
         director:
           type: string
+          example: "Christopher Nolan"
+        actors:
+          type: array
+          items:
+            type: string
+          example: ["Leonardo DiCaprio", "Joseph Gordon-Levitt"]
+        genres:
+          type: array
+          items:
+            type: string
+          example: ["Science-Fiction", "Thriller"]
+        minAge:
+          type: integer
+          description: Âge minimum requis pour regarder le film
+          example: 12
         rating:
           type: number
           example: 8.8
@@ -82,5 +136,35 @@ components:
         birthday:
           type: string
           format: date
+          example: "1974-11-11"
         biography:
           type: string
+          example: "Acteur américain né à Los Angeles..."
+
+    BatchMovieRequest:
+      type: object
+      required:
+        - titles
+      properties:
+        titles:
+          type: array
+          description: Liste des titres de films à importer
+          items:
+            type: string
+          example: ["Inception", "Interstellar", "The Dark Knight"]
+
+    BatchMovieResponse:
+      type: object
+      properties:
+        imported:
+          type: integer
+          description: Nombre de films importés avec succès
+          example: 3
+        skipped:
+          type: integer
+          description: Nombre de films ignorés (déjà en base ou non trouvés)
+          example: 1
+        movies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Movie'
