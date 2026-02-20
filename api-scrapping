@@ -74,6 +74,26 @@ paths:
                 $ref: '#/components/schemas/BatchMovieResponse'
         '502':
           description: Erreur lors de la communication avec l'API externe
+  '/artists/batch/{nbArtists}':
+    get:
+      summary: Importer un nombre aléatoire d'artistes
+      parameters:
+        - name: nbArtists
+          in: path
+          required: true
+          description: Nombre d'artistes à générer aléatoirement
+          schema:
+            type: integer
+            example: 20
+      responses:
+        '201':
+          description: Artistes importés avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchArtistResponse'
+        '502':
+          description: Erreur lors de la communication avec l'API externe
 components:
   schemas:
     Movie:
@@ -136,3 +156,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Movie'
+    BatchArtistResponse:
+      type: object
+      properties:
+        imported:
+          type: integer
+          example: 20
+        skipped:
+          type: integer
+          example: 3
+        artists:
+          type: array
+          items:
+            $ref: '#/components/schemas/Artist'
