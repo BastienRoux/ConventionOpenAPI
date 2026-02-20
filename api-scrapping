@@ -5,10 +5,8 @@ info:
     API de scrapping permettant de récupérer des données sur des films et des artistes
     depuis des bases extérieures afin de peupler la base de données locale.
   version: 1.0.0
-
 paths:
-
-  '/scraping/movies/{name}':
+  '/movies/{name}':
     get:
       summary: Rechercher et importer un film depuis une API externe
       parameters:
@@ -32,8 +30,7 @@ paths:
           description: Le film existe déjà en base de données
         '502':
           description: Erreur lors de la communication avec l'API externe
-
-  '/scraping/artists/{name}':
+  '/artists/{name}':
     get:
       summary: Rechercher et importer un artiste depuis une API externe
       parameters:
@@ -57,8 +54,7 @@ paths:
           description: L'artiste existe déjà en base de données
         '502':
           description: Erreur lors de la communication avec l'API externe
-
-  '/scraping/movies/batch/{nbFilms}':
+  '/movies/batch/{nbFilms}':
     get:
       summary: Importer un nombre aléatoire de films
       parameters:
@@ -78,10 +74,8 @@ paths:
                 $ref: '#/components/schemas/BatchMovieResponse'
         '502':
           description: Erreur lors de la communication avec l'API externe
-
 components:
   schemas:
-
     Movie:
       type: object
       properties:
@@ -113,7 +107,6 @@ components:
         rating:
           type: number
           example: 8.8
-
     Artist:
       type: object
       properties:
@@ -130,7 +123,6 @@ components:
         biography:
           type: string
           example: "Acteur américain né à Los Angeles..."
-
     BatchMovieResponse:
       type: object
       properties:
