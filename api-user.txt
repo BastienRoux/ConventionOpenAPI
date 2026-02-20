@@ -126,29 +126,6 @@ paths:
           description: Accès interdit (admin uniquement)
         '404':
           description: Utilisateur non trouvé
-
-  /user/login:
-    post:
-      summary: Connexion d'un utilisateur
-      description: Authentifie un utilisateur avec son pseudo et mot de passe.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserLogin'
-      responses:
-        '200':
-          description: Connexion réussie
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthToken'
-        '401':
-          description: Identifiants incorrects
-        '400':
-          description: Requête invalide
-
 components:
   schemas:
     UserCreate:
