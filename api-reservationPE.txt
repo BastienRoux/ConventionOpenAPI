@@ -107,7 +107,7 @@ components:
     Reservation:
       type: object
       required:
-        - id_reservation
+        - id(_reservation)
         - date_debut
         - date_fin
         - id_film
@@ -139,5 +139,5 @@ components:
         pseudo:
           type: string
           examples: [156]
-
           description: L'identifiant de l'utilisateur qui a passé la réservation.
+
