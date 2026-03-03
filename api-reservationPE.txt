@@ -21,7 +21,7 @@ paths:
         '400':
           description: Requête invalide
           
-  /reservations/u/{id_utilisateur}:
+  /reservations/u/{userId}:
     get:
       summary: Obtenir la liste de réservations d'un utilisateur dont l'identifiant est passé en paramètre
       description: Renvoie une réservation spécifique identifiée par son identifiant.
@@ -43,7 +43,7 @@ paths:
                   $ref: '#/components/schemas/Reservation'
         '404':
           description: Pas de réservation pour l'identifiant utilisateur fourni
-  /reservations/{id_reservation}:
+  /reservations/{id}:
     get:
       summary: Trouver une réservation par son identifiant
       description: Renvoie une réservation spécifique identifiée par son identifiant.
@@ -140,6 +140,7 @@ components:
           type: string
           examples: [156]
           description: L'identifiant de l'utilisateur qui a passé la réservation.
+
 
 
 
