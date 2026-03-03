@@ -107,32 +107,32 @@ components:
     Reservation:
       type: object
       required:
-        - id(_reservation)
-        - date_debut
-        - date_fin
-        - id_film
-        - id_paiement
+        - id
+        - start
+        - end
+        - filmId
+        - paymentId
         - userId
       properties:
-        id_reservation:
+        id:
           type: string
           examples: [100]
           description: L'identifiant de la réservation.
-        date_debut:
+        start:
           type: string
           examples: ['2026-01-27']
           format: date
           description: La date de début de la réservation.
-        date_fin:
+        end:
           type: string
           examples: ['2026-01-29']
           format: date
           description: La date de fin de la réservation.
-        id_film:
+        filmId:
           type: string
           examples: [64]
           description : L'identifiant du film associé à la réservation.
-        id_paiement:
+        paymentId:
           type: string
           examples: [3011]
           description: L'identifiant du paiement associé à la réservation.
@@ -140,5 +140,6 @@ components:
           type: string
           examples: [156]
           description: L'identifiant de l'utilisateur qui a passé la réservation.
+
 
 
