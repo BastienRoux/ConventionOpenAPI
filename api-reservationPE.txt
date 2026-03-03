@@ -112,7 +112,7 @@ components:
         - date_fin
         - id_film
         - id_paiement
-        - pseudo
+        - userId
       properties:
         id_reservation:
           type: string
@@ -136,8 +136,9 @@ components:
           type: string
           examples: [3011]
           description: L'identifiant du paiement associé à la réservation.
-        pseudo:
+        userId:
           type: string
           examples: [156]
           description: L'identifiant de l'utilisateur qui a passé la réservation.
+
 
