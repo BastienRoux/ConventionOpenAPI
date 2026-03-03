@@ -26,7 +26,7 @@ paths:
       summary: Obtenir la liste de réservations d'un utilisateur dont l'identifiant est passé en paramètre
       description: Renvoie une réservation spécifique identifiée par son identifiant.
       parameters:
-        - name: id_utilisateur
+        - name: userId
           in: path
           required: true
           description: L'identifiant de l'auteur de la réservation.
@@ -48,7 +48,7 @@ paths:
       summary: Trouver une réservation par son identifiant
       description: Renvoie une réservation spécifique identifiée par son identifiant.
       parameters:
-        - name: id_reservation
+        - name: id
           in: path
           required: true
           description: L'identifiant de la réservation à trouver.
@@ -67,7 +67,7 @@ paths:
       summary: Mettre à jour une réservation
       description: Met à jour les informations d'une réservation.
       parameters:
-        - name: id_reservation
+        - name: id
           in: path
           required: true
           description: L'identifiant de la réservation à mettre à jour.
@@ -90,7 +90,7 @@ paths:
       summary: Supprimer une réservation
       description: Supprime une réservation spécifique. (vraiment utile ?)
       parameters:
-        - name: id_reservation
+        - name: id
           in: path
           required: true
           description: L'identifiant de la réservation à supprimer.
@@ -140,7 +140,5 @@ components:
           type: string
           examples: [156]
           description: L'identifiant de l'utilisateur qui a passé la réservation.
-
-
 
 
