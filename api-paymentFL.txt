@@ -32,11 +32,11 @@ paths:
             schema:
               $ref: '#/components/schemas/Payment'
             example:  # <- exemple pour Swagger Editor
-              id: "pmt_001"
+              id: "1"
               amount: 49.99
               currency: "EUR"
               status: "pending"
-              userId: "user_123"
+              userId: "123"
               createdAt: "2026-01-27T10:00:00Z"
       responses:
         '201':
@@ -53,7 +53,8 @@ paths:
           required: true
           description: L'ID du paiement à récupérer
           schema:
-            type: string
+            type: integer
+            format: int64
       responses:
         '200':
           description: Détails du paiement
@@ -75,7 +76,8 @@ components:
         - status
       properties:
         id:
-          type: string
+          type: integer
+          format: int64
           description: Identifiant unique du paiement
         amount:
           type: number
@@ -88,7 +90,8 @@ components:
           type: string
           description: Statut du paiement 
         userId:
-          type: string
+          type: integer
+          format: int64
           description: ID de l’utilisateur qui a effectué le paiement
         createdAt:
           type: string
