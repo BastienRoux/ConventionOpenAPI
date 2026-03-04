@@ -31,7 +31,8 @@ paths:
           required: true
           description: L'identifiant de l'auteur de la réservation.
           schema:
-            type: string
+            type: integer
+            format: int64
       reponses:
         '200':
           description: Liste des réservations de l'auteur
@@ -53,7 +54,8 @@ paths:
           required: true
           description: L'identifiant de la réservation à trouver.
           schema:
-            type: string
+            type: integer
+            format: int64
       responses:
         '200':
           description: Détails d'une réservation
@@ -72,7 +74,8 @@ paths:
           required: true
           description: L'identifiant de la réservation à mettre à jour.
           schema:
-            type: string
+            type: integer
+            format: int64
       requestBody:
         required: true
         content:
@@ -95,7 +98,8 @@ paths:
           required: true
           description: L'identifiant de la réservation à supprimer.
           schema:
-            type: string
+            type: integer
+            format: int64
       responses:
         '200':
           description: Réservation supprimée avec succès
@@ -115,7 +119,8 @@ components:
         - userId
       properties:
         id:
-          type: string
+          type: integer
+          format: int64
           examples: [100]
           description: L'identifiant de la réservation.
         start:
@@ -129,16 +134,20 @@ components:
           format: date
           description: La date de fin de la réservation.
         filmId:
-          type: string
+          type: integer
+          format: int64
           examples: [64]
           description : L'identifiant du film associé à la réservation.
         paymentId:
-          type: string
+          type: integer
+          format: int64
           examples: [3011]
           description: L'identifiant du paiement associé à la réservation.
         userId:
-          type: string
+          type: integer
+          format: int64
           examples: [156]
           description: L'identifiant de l'utilisateur qui a passé la réservation.
+
 
 
